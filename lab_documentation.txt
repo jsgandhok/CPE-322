@@ -1,0 +1,808 @@
+****************************************************************************
+
+***************Documentation of all completed parts of Lab 1.***************
+
+			***1A: Raspberry Pi Setup ***
+
+ -Basics were already setup
+ -Completed the following commands in terminal
+    uname -a
+    ifconfig
+    ping localhost
+ -IP addr: 192.168.1.202
+  
+			***1B: Raspberry Pi Configuration***
+
+  -Below are the made changes under "System" tab, the rest were left as default:
+      Auto login: Disabled (security)
+      Network at Boot: Wait for network (to run startup_mailier.py)
+  -Everything was left as defualt in the "Display" tab
+  -Everything was switched in the "Interfaces" tab
+  -Everything except below was left as defualt in tje "Performance" tab:
+      GPU Memory: changed from 128 to 64
+  -Ensured specfications in "Localization" tab is all configured  
+
+			***1C: Starup Mailer***
+	
+  *Following are the completed steps from the given steps to complete in Lesson 1
+    -App passwords > Select the app (Mail) and device (Raspberry Pi) > GENERATE
+    -password: iCloud notes titled "Google 16 char password"
+    -Alread cloned iot repo so I changed directories, and pulled to ensure all up to date.
+        pi@raspberrypi:~ $ cd iot
+        pi@raspberrypi:~/iot $ git pull
+    -ls/cd to Lesson 1 till you have this directory domain
+        pi@raspberrypi:~/iot/lesson1 $ 
+    -then run the following command to edit the "startup_mailer.py" file using GNU nano text editor
+        nano startup_mailer.py
+    -now editor opens and you can edit feild to respective own email info.
+    - Replace HOSTNAME with the new Hostname in two instances
+Save the file by typing "control-x y enter"
+Test startup_mailer.py
+Edit /etc/rc.local
+
+Commands ran:
+    python3 /home/pi/startup_mailer.py
+fi
+ 
+no email recieved, commands ran:
+$ sudo nano /lib/systemd/system/startup.service
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable startup.service
+$ sudo reboot
+
+
+
+			***1D: SSH/VNC ***
+
+  -Choose Real VNC viewer option (already setup)
+
+
+***************Documentation of all completed parts of Lab 2.***************
+		
+			***2A: GPIO & Serial Communication ***
+1.) Opening gnome terminal
+$ sudo nano /boot/cmdline.txt 
+//ensure rasp pi serial console is disabled
+	-Delete "console=serial0,115200" if found
+	-Save the file with control-x y enter
+$ sudo reboot
+
+2.) Serial loopback test
+*connected pins 4 and 5 using jump wire
+
+//ran APT to install Minicom
+$ sudo apt update
+$ sudo apt install minicom
+$ man minicom
+$ minicom -b 115200 -o -D /dev/ttyS0
+
+//enable new line 
+control-a a
+hello
+
+//enable echo
+control-a e
+hheelllloo
+
+//exit Minicom
+control-a x
+
+*did not do optional serial test
+
+			***2B: Serial peripheral interface***
+
+*connected the SPI, MOSI, and MISO pins using a jump wire
+
+//following commands for spidev-test
+$ wget https://raw.githubusercontent.com/raspberrypi/linux/rpi-3.10.y/Documentation/spi/spidev_test.c
+$ gcc -o spidev_test spidev_test.c
+$ ./spidev_test -D /dev/spidev0.0
+spi mode: 0
+bits per word: 8
+max speed: 500000 Hz (500 KHz)
+
+FF FF FF FF FF FF 
+40 00 00 00 00 95 
+FF FF FF FF FF FF 
+FF FF FF FF FF FF 
+FF FF FF FF FF FF 
+DE AD BE EF BA AD 
+F0 0D 
+
+*removed wire to retest
+
+//again run commands
+$ ./spidev_test -D /dev/spidev0.0
+spi mode: 4
+bits per word: 8
+max speed: 500000 Hz (500 KHz)
+
+00 00 00 00 00 00 
+00 00 00 00 00 00 
+00 00 00 00 00 00 
+00 00 00 00 00 00 
+00 00 00 00 00 00 
+00 00 00 00 00 00 
+00 00 
+
+			***2C: Breadboard***
+
+1. Shorter lead (−) of the LED to a 330-Ω resistor then to Ground, 
+the 3rd pin from the left of the top row
+
+2. Longer lead (+) of the LED to GPIO 18, the 6th pin from the
+ left of the top row
+
+			***2D: LED***
+
+1. Connect an LED on a breadboard to the Raspberry Pi GPIO using two jump 
+wires as shown in Lab C
+2. On a Terminal, enter the following commands to switch an LED on/off
+//commands:
+pi@raspberypi:~ $ sudo su
+root@raspberypi:/home/pi# echo 18 > /sys/class/gpio/export
+root@raspberypi:/home/pi# cd /sys/class/gpio/gpio18
+root@raspberypi:/sys/class/gpio/gpio18# echo out > direction
+root@raspberypi:/sys/class/gpio/gpio18# echo 1 > value
+root@raspberypi:/sys/class/gpio/gpio18# echo 0 > value
+root@raspberypi:/sys/class/gpio/gpio18# cd /home/pi
+root@raspberypi:/home/pi# echo 18 > /sys/class/gpio/unexport
+root@raspberypi:/home/pi# exit
+
+			***2E: I2C (inter-integrated circuit)***
+
+-Test I2C addresses with the preinstalled i2c-tools
+-Connect an I2C device ADXL345 (3-axis accelerometer) to 3V3, GND, SDA, and SCL of a Raspberry Pi with two 4.7kΩ pull-up resistors
+
+$ sudo i2cdetect -y 1
+   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- 53 -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- -- 
+
+-Connect an I2C device BMP180 or BMP280 (barometric pressure sensor) to 3V3,
+GND, SDA, and SCL of a Raspberry Pi
+
+$ sudo i2cdetect -y 1
+   0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- 77 
+
+			***2F: 1-Wire***
+
+Connect a DS18B20 temperature sensor to Raspberry Pi as follows:
+IC power-supply pin of BJT (bipolar junction transistor) and FET (field-effect transistor)
+
+GND to GND
+VDD to 3.3V or 5V
+DQ to GPIO 4 (the 4th pin from the left of the bottom row) and through a 4.7kΩ resistor to VDD
+
+pi@raspberrypi:~ $ sudo modprobe w1-gpio
+pi@raspberrypi:~ $ sudo modprobe w1-therm
+pi@raspberrypi:~ $ cd /sys/bus/w1/devices
+pi@raspberrypi:/sys/bus/w1/devices $ ls
+28-0000064dc293  w1_bus_master1
+pi@raspberrypi:/sys/bus/w1/devices $ cd 28*
+pi@raspberrypi:/sys/bus/w1/devices/28-0000064dc293 $ cat w1_slave
+8f 01 4b 46 7f ff 01 10 14 : crc=14 YES
+8f 01 4b 46 7f ff 01 10 14 t=24937
+pi@raspberrypi:/sys/bus/w1/devices/28-0000064dc293 $ cd
+pi@raspberrypi:~ $ 
+
+			***2G: Webcam***
+			
+//connect a webcam to Rasp Pi, install fswebcam, and save images
+$ sudo apt update
+$ sudo apt install fswebcam
+$ fswebcam image.jpg
+$ fswebcam -r 1280x720 image2.jpg
+$ fswebcam -r 1280x720 --no-banner image3.jpg
+
+			***2H: USB Mic. & 3.5 mm headphones***
+
+//connect microphone and 3.5-mm headphones to Raspberry Pi
+$ man arecord
+$ arecord -l
+**** List of CAPTURE Hardware Devices ****
+card 1: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+$ aplay -l
+**** List of PLAYBACK Hardware Devices ****
+card 0: Headphones [bcm2835 Headphones], device 0: bcm2835 Headphones [bcm2835 Headphones]
+  Subdevices: 8/8
+  Subdevice #0: subdevice #0
+  Subdevice #1: subdevice #1
+  Subdevice #2: subdevice #2
+  Subdevice #3: subdevice #3
+  Subdevice #4: subdevice #4
+  Subdevice #5: subdevice #5
+  Subdevice #6: subdevice #6
+  Subdevice #7: subdevice #7
+$ arecord --device=hw:1,0 --format S16_LE --rate 44100 -c1 test.wav
+control-c
+$ aplay test.wav
+
+
+***************Documentation of all completed parts of Lab 3.***************
+
+3A: Python****************************
+
+*python tutorial observed
+	-ensuring to not upgrade python (pip) on rasp pi os
+
+*Code: segmented in blocks per instruction set
+
+$ sudo pip3 install -U jdcal astral geopy
+$ cd iot
+$ git pull
+$ cd lesson3
+$ 2to3 2example.py
+$ python3 julian.py
+$ python3 date_example.py
+$ python3 datetime_example.py
+$ python3 time_example.py
+$ python3 sun.py 'New York'
+$ python3 sun.py Beijing
+$ python3 sun.py 'New Delhi'
+$ python3 moon.py
+$ python3 coordinates.py 'SC Williams Library'
+$ python3 address.py '40.74480675, -74.02532862031404'
+$ python3 cpu.py
+$ python3 battery.py
+$ python3 documentstats.py document.txt
+
+$ nano system_info.py
+$ python3 system_info.py
+
+$ ifconfig
+
+$ python3 socket_server.py
+$ python3 socket_client.py 'The Server IP Address'
+
+
+3B: Breadboard******************
+1.) 
+connect breadboard
+2.) 
+$ python3 blink.py
+$ python3 manual.py
+$ python3 auto.py
+3.)
+$ cd
+$ mkdir demo
+$ cd demo
+$ cp ~/iot/lesson3/test_email.py .
+$ nano test_email.py
+$ python3 test_email.py
+$ cp ~/iot/lesson3/hello.py .
+$ nano hello.py
+$ python3 hello.py
+
+3C: Remote GPIO**************
+1.) launch pigpio daemon
+pi@raspberrypi:~ $ sudo pigpiod -n <CONTROLLING_ADDRESS>
+2.)
+$ sudo pip3 install gpiozero pigpio
+$ git clone https://github.com/kevinwlu/iot.git
+$ cd ~/iot/lesson3
+$ PIGPIO_ADDR=<CONTROLLED_ADDRESS> python3 led.py
+3.)
+$ GPIOZERO_PIN_FACTORY=pigpio PIGPIO_ADDR=<CONTROLLED_ADDRESS> python3 led.py
+
+3D: 1-Wire*******************
+*breadboard:
+Connect DS18B20 to Raspberry Pi and run the Python program:
+GND to GND
+VDD to 3.3V or 5V
+DQ to GPIO 4 (the 4th pin from the left of the bottom row) and through a 4.7kΩ resistor to VDD
+*command:
+pi@raspberrypi:~/iot/lesson3 $ python3 temperature.py
+
+3E: PyPy***************
+$ cd ~/iot/lesson3/pypy
+$ gcc -o test test.c
+$ time ./test
+$ time pypy test.py
+$ time python test.py
+$ time python3 test.py
+$ pypy -m cProfile test.py
+$ python -m cProfile test.py
+$ python3 -m cProfile test.py
+
+3F: Doxygen
+$ sudo apt install doxygen html2text
+$ cd ~/demo
+$ cp ~/iot/lesson3/pyexample.py .
+$ doxygen -g doxygen.config
+$ nano doxygen.config
+//...
+$ doxygen doxygen.config
+$ cd html
+$ html2text annotated.html
+
+
+***************Documentation of all completed parts of Lab 4.***************
+4 (A&B): Django & Django REST
+$ pip3 -V
+$ pip3 list
+$ sudo pip3 install -U setuptools
+$ sudo pip3 install -U django
+$ sudo pip3 install -U djangorestframework
+$ sudo pip3 install -U django-filter
+$ sudo pip3 install -U markdown
+$ sudo pip3 install -U requests
+
+$ sudo apt update
+$ sudo apt install mariadb-server mariadb-client
+$ sudo apt install python3-mysqldb
+$ sudo pip3 install -U mysqlclient
+$ sudo mysql_secure_installation
+Enter current password for root (enter for none): 
+Change the root password? [Y/n] 
+New password: PASSWORD
+Re-enter new password: PASSWORD
+Remove anonymous users? [Y/n] 
+Disallow root login remotely? [Y/n] 
+Remove test database and access to it? [Y/n] 
+Reload privilege tables now? [Y/n]
+
+4C:
+1.)
+$ cd ~/iot/lesson4
+python3 hello_world.py
+2.)
+$ sudo pip3 install -U flask-ask
+$ sudo pip3 install 'cryptography<2.2'
+$ sudo wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm.zip
+$ sudo unzip ngrok-stable-linux-arm.zip
+$ ./ngrok http 5000
+3.)
+$ cd ~/iot/lesson4
+$ python3 memory_game.py
+4.)
+...
+
+4D:
+1.)
+$ sudo apt update
+$ sudo apt install apache2
+$ sudo service apache2 restart
+2.)
+$ sudo apt install php
+$ cd /var/www/html
+$ ls
+index.html
+$ sudo mv index.html index.html.bak
+$ sudo cp ~/iot/lesson4/index.php .
+$ sudo service apache2 restart
+3.)
+...
+4.)
+$ sudo apt install php-mysql
+$ cd /var/www/html
+$ sudo chown pi: .
+$ mv index.php index.php.bak
+$ wget http://wordpress.org/latest.tar.gz
+$ tar xzf latest.tar.gz
+$ mv wordpress/* .
+$ rm -rf wordpress latest.tar.gz
+5.)
+$ sudo mysql -u root -p
+...
+$ sudo service apache2 restart
+6.)
+$ nano wp-config.php
+7.)
+...
+8.)
+...
+
+
+***************Documentation of all completed parts of Lab 5.***************
+5A: Eclipse Mosquitto and Eclipse Paho
+...
+brew install mosquitto
+brew services start mosquitto
+
+$ sudo apt update
+$ sudo apt install mosquitto mosquitto-clients
+$ mosquitto_sub -h localhost -v -t "\$SYS/#"
+...
+$ service mosquitto status
+$ netstat -tln
+...
+//Terminal 1
+$ mosquitto_sub -h localhost -v -t test/topic &
+//Terminal 2
+$ mosquitto_pub -h localhost -t test/topic -m "Hello"
+
+$ sudo pip3 install -U paho-mqtt
+$ git clone https://github.com/eclipse/paho.mqtt.python.git
+$ cd ~/iot/lesson5
+$ python3 client.py
+
+//T1 & T2 cmds ...
+$ python3 sub.py
+$ python3 pub.py
+
+$ python3 sub-multiple.py
+$ python3 pub-multiple.py
+
+$ python3 subcpu.py
+$ python3 pubcpu.py
+
+$ cd ~/demo
+$ cp ~/iot/lesson5/subraspi.py .
+$ nano subraspi.py
+$ python3 subraspi.py
+
+$ cd ~/demo
+$ cp ~/iot/lesson5/system_info.py .
+$ cp ~/iot/lesson5/pubraspi.py .
+$ nano pubraspi.py
+$ python3 pubraspi.py
+
+* did not do optional part
+
+***************Documentation of all completed parts of Lab 6.***************
+			
+			A:*************
+$ node -v
+$ npm -v
+$ node -h
+$ cd ~/iot/lesson6
+$ node hello-world.js
+$ node hello.js
+Server running at http://127.0.0.1:8080/
+response end call done
+request end event fired
+response end call done
+request end event fired
+^C
+$ node http.js
+0
+
+1
+2
+^C
+$
+
+$ bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
+
+$ node -v
+$ npm -v
+$ node -h
+$ cd ~/iot/lesson6
+$ node hello.js
+Server running at http://127.0.0.1:8080/
+response end call done
+request end event fired
+response end call done
+request end event fired
+^C
+$ node http.js
+0
+
+1
+2
+^C
+$
+
+			B:*********
+$ sudo pip3 install pystache
+$ cd ~/iot/lesson6
+$ cat say_hello.mustache
+$ cat say_hello.py
+$ python3 say_hello.py
+Hi Alexa!
+Hello, World!
+
+['Hey ', _SectionNode(key='who', index_begin=12, index_end=18, parsed=[_EscapeNode(key='.'), '!'])]
+Hey Google!
+Hey Siri!
+$
+
+			C:********
+...
+$ bash <( curl -sL https://particle.io/install-pi )
+...
+$ sudo particle-agent setup
+...
+$ sudo apt remove particle-agent
+$ sudo apt autoremove
+$ sudo rm -rf /var/lib/particle
+...
+$ bash <( curl -sL https://particle.io/install-cli )
+$ particle login
+$ particle call <device_name> digitalwrite D7=HIGH
+$ particle call <device_name> digitalwrite D7=LOW
+$ particle logout
+
+
+***************Documentation of all completed parts of Lab 7.***************
+A:
+...
+$ sudo pip3 install -U psutil
+$ cd ~/demo
+$ cp ~/iot/lesson7/thingspeak_cpu_loop.py .
+$ cp ~/iot/lesson7/thingspeak_feed.py .
+$ cat thingspeak_cpu_loop.py
+$ cat thingspeak_feed.py
+$ python3 thingspeak_feed.py
+An API key savefile was not found. Enter Write API Key >>>
+Should we save this key for future use? [y/N] >>>
+B:
+...
+$ sudo pip3 install -U gspread oauth2client
+...
+$ cd demo
+$ cp ~/iot/lesson3/system_info.py .
+$ cp ~/iot/lesson7/rpi_spreadsheet.py .
+...
+$ scp rpidata-*.json pi@192.168.x.xxx:/home/pi/demo
+...
+$ mv ~/Downloads/rpidata-*.json ~/demo
+***
+$ nano rpi_spreadsheet.py
+***
+$ python3 rpi_spreadsheet.py
+
+
+
+***************Documentation of all completed parts of Lab 8.***************
+A:
+***
+$ sudo pip3 install numpy scipy scikit-learn matplotlib pandas tensorflow keras
+...
+$ docker pull tensorflow/tensorflow
+$ docker run -it tensorflow/tensorflow bash
+# apt update
+# apt full-upgrade
+# apt install git-all
+# git clone https://github.com/kevinwlu/iot.git
+# pip install keras
+# cd iot/lesson8
+# python keras_diabetes.py
+# python keras_first_network.py
+# exit
+...
+$ sudo pip3 install numpy scipy scikit-learn matplotlib pandas tensorflow keras
+...
+$ sudo apt update
+$ sudo apt install python3-scipy
+$ sudo apt install python3-matplotlib
+$ sudo apt install python3-pandas
+$ sudo apt install libopenblas-dev
+$ sudo apt install libatlas-base-dev
+$ sudo pip3 install -U numpy
+$ sudo pip3 install --only-binary :all: -U scikit-learn
+$ sudo pip3 install -U tensorflow
+$ sudo pip3 install -U keras==2.3.1
+...windows:
+$ export DISPLAY=localhost:0
+$ ssh -Y pi@xxx.xxx.xxx.xxx
+
+X applications
+... code
+
+B:
+...
+$ cd ~/demo
+$ cp ~/iot/lesson8/plt_final.py .
+$ cp ~/iot/lesson8/plt_cv2.py .
+$ nano plt_final.py
+...
+$ nano plt_cv2.py
+...
+$ python3 plt_final.py
+$ python3 plt_cv2.py
+
+*temp and cpu usage % graphs outputted
+
+
+***************Documentation of all completed parts of Lab 9.***************
+A:
+...ubuntu/WSL 2 (ubuntu terminal)
+$ sudo pip3 install pyang plantuml
+$ mkdir ~/demo
+$ cp ~/iot/lesson9/intrusiondetection.yang ~/demo
+$ cd ~/demo
+$ cat intrusiondetection.yang
+$ pyang -f yin -o intrusiondetection.yin intrusiondetection.yang
+$ cat intrusiondetection.yin
+$ pyang -f uml -o intrusiondetection.uml intrusiondetection.yang --uml-no=stereotypes,annotation,typedef
+$ cat intrusiondetection.uml
+$ python3 -m plantuml intrusiondetection.uml
+...
+$ sudo pip3 install -U plantuml
+...
+$ python3 -m plantuml intrusiondetection.uml
+...
+$ cd
+$ sudo apt update
+$ sudo apt install gimp pinta
+$ cd ~/demo
+$ pinta intrusiondetection.png
+$ gimp -h
+$ gimp -a intrusiondetection.png
+
+B:
+...
+$ pip3 install qiskit[visualization]
+$ python3
+>>> from qiskit import IBMQ
+>>> IBMQ.save_account('MY_API_TOKEN')
+>>> IBMQ.load_account()
+>>> exit()
+$ cd ~/iot/lesson9
+$ python3 qiskit_terra_example.py
+$ python3 qiskit_aer_example.py
+$ python3 qiskit_aqua_example.py
+$ python3 qiskit_ignis_example.py
+...
+$ sudo sed -i 's/CONF_SWAPSIZE=100/CONF_SWAPSIZE=1024/' /etc/dphys-swapfile
+$ sudo /etc/init.d/dphys-swapfile stop
+$ sudo /etc/init.d/dphys-swapfile start
+$ pip3 install setuptools-rust
+$ curl -o get_rustup.sh -s https://sh.rustup.rs
+$ sh ./get_rustup.sh -y
+$ source ~/.cargo/env
+$ pip3 install --prefer-binary retworkx
+$ sudo apt -y install cmake libatlas-base-dev git
+$ git clone https://github.com/sunqm/libcint.git
+$ mkdir -p libcint/build && cd libcint/build
+$ cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/local/ ..
+$ sudo make install
+$ cd
+$ sudo pip3 install --prefer-binary pyscf cython
+$ sudo pip3 install --prefer-binary 'qiskit[visualization]==0.23.1'
+$ python3
+>>> from qiskit import IBMQ
+>>> IBMQ.save_account('MY_API_TOKEN')
+>>> IBMQ.load_account()
+<AccountProvider for IBMQ(hub='ibm-q', group='open', project='main')>
+>>> IBMQ.providers()
+[<AccountProvider for IBMQ(hub='ibm-q', group='open', project='main')>]
+>>> provider = IBMQ.get_provider(hub='ibm-q')
+>>> provider.backends()
+[<IBMQSimulator('ibmq_qasm_simulator') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQBackend('ibmq_armonk') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQBackend('ibmq_santiago') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQBackend('ibmq_bogota') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQBackend('ibmq_lima') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQBackend('ibmq_belem') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQBackend('ibmq_quito') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQSimulator('simulator_statevector') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQSimulator('simulator_mps') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQSimulator('simulator_extended_stabilizer') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQSimulator('simulator_stabilizer') from IBMQ(hub='ibm-q', group='open', project='main')>, 
+<IBMQBackend('ibmq_manila') from IBMQ(hub='ibm-q', group='open', project='main')>]
+>>> backend = provider.get_backend('ibmq_lima')
+>>> backend
+<IBMQBackend('ibmq_lima') from IBMQ(hub='ibm-q', group='open', project='main')>
+>>> exit()
+$ cd ~/iot/lesson9
+$ python3 qiskit_terra_example.py
+$ python3 qiskit_aer_example.py
+$ python3 qiskit_aqua_example.py
+$ python3 qiskit_ignis_example.py
+
+
+
+***************Documentation of all completed parts of Lab 10.***************
+A:
+...
+$ cd ~/iot/lesson10
+$ cat hash_value.py
+$ python3 hash_value.py
+$ python3 hash_value.py
+...
+$ cat snakecoin-server-full-code.py
+$ python3 snakecoin-server-full-code.py
+$ cd
+...
+$ sudo pip3 install markupsafe==2.0.1
+$ python3 snakecoin-server-full-code.py
+...
+$ curl "localhost:5000/txion" \
+     -H "Content-Type: application/json" \
+     -d '{"from": "akjflw", "to":"fjlakdj", "amount": 3}'
+$ curl localhost:5000/mine
+...
+$ git clone https://github.com/satwikkansal/python_blockchain_app.git
+$ cd ~/python_blockchain_app
+$ nano node_server.py
+$ python3 node_server.py
+...
+$ vncserver
+$ cd ~/python_blockchain_app
+$ python3 run_app.py
+...
+
+B:
+...
+$ sudo pip3 install pyota[ccurl]
+$ cd ~/iot/lesson10
+$ cat iri_node_info.py
+$ python3 iri_node_info.py
+$ cd
+
+C:
+...
+$ wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.60.tar.gz
+$ tar zxvf bcm2835-1.60.tar.gz
+$ cd bcm2835-1.60
+$ ./configure
+$ make
+$ sudo make check
+$ sudo make install
+$ cd
+...
+$ git clone https://github.com/robertlie/dht11-raspi3.git
+$ cd dht11-raspi3
+$ npm install
+...
+$ cd ~/dht11-raspi3
+$ nano mam_publish.js
+$ nano mam_receive.js
+$ nano mam_sensor.js
+...
+$ cd ~/dht11-raspi3/lib
+$ nano mam.client.js
+...
+$ cd ~/dht11-raspi3
+$ node mam_publish.js
+...
+$ cd ~/dht11-raspi3
+$ node mam_receive.js YOUR_ROOT
+...
+$ cd ~/dht11-raspi3
+$ nano sensor.js
+$ nano mam_sensor.js
+$ node sensor.js
+...
+//T1
+$ cd ~/dht11-raspi3
+$ node mam_sensor.js
+//T2
+$ cd ~/dht11-raspi3
+$ node mam_receive.js YOUR_ROOT
+
+****************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

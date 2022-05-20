@@ -1,3 +1,4 @@
+BELOW CONTAINS ALL -DEEMED APPROPIATE- DOCUMENTATION FOR ALL CPE-322 LABS 
 ****************************************************************************
 
 ***************Documentation of all completed parts of Lab 1.***************
